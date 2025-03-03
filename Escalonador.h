@@ -52,13 +52,7 @@ class FCFS : public Processos {
             }
             arquivo.close();
         }
-
-        void exibirFila() {
-            for(auto it = filaDeProcessos.begin(); it != filaDeProcessos.end(); ++it) {
-                cout << "Tempo de chegada: " << it->getTempoDeChegada() << " Tempo de execucao: " << it->getTempoDeExecucao() << endl;
-            }
-        }
-        
+    
         float tempoDeRetornoMedio() {   
             vector<Processos> filaDeProcessos = this->filaDeProcessos;
             float somaTempoRetorno = 0;
@@ -309,8 +303,8 @@ class RoundRobin : public Processos {
         float tempoDeRetornoMedio() {
             vector<Processos> filaDeProcessos = this->filaDeProcessos; // Cópia da fila original
             float somaTempoRetorno = 0;
-            int numProcessos = filaDeProcessos.size();
-            int tempoAtual = 0;
+            float numProcessos = filaDeProcessos.size();
+            float tempoAtual = 0;
             float quantum = 2; // Defina o quantum do Round Robin
             queue<Processos> prontos; // Fila circular de processos
         
@@ -348,7 +342,7 @@ class RoundRobin : public Processos {
         
                 // Se o processo terminou, calcula o tempo de retorno
                 if (processoAtual.getTempoDeExecucao() == 0) {
-                    int tempoConclusao = tempoAtual;
+                    float tempoConclusao = tempoAtual;
                     somaTempoRetorno += tempoConclusao - processoAtual.getTempoDeChegada();
                 } else {
                     // Se ainda não terminou, volta para o final da fila
@@ -361,12 +355,12 @@ class RoundRobin : public Processos {
         
         float tempoDeRespostaMedio() {
             vector<Processos> filaDeProcessos = this->filaDeProcessos; // Cópia da fila original
-            int numProcessos = filaDeProcessos.size();
-            int quantum = 2; // Quantum do Round Robin
-            int tempoAtual = 0;
-            queue<int> prontos; // Armazena índices dos processos
-            unordered_map<int, int> tempoPrimeiraExecucao; // Índice -> Tempo da primeira execução
-            vector<int> tempoRestante(numProcessos); // Tempo restante para cada processo
+            float numProcessos = filaDeProcessos.size();
+            float quantum = 2; // Quantum do Round Robin
+            float tempoAtual = 0;
+            queue<float> prontos; // Armazena índices dos processos
+            unordered_map<float, float> tempoPrimeiraExecucao; // Índice -> Tempo da primeira execução
+            vector<float> tempoRestante(numProcessos); // Tempo restante para cada processo
         
             // Ordena processos pelo tempo de chegada
             sort(filaDeProcessos.begin(), filaDeProcessos.end(),
@@ -399,7 +393,7 @@ class RoundRobin : public Processos {
                     tempoPrimeiraExecucao[i] = tempoAtual;
                 }
         
-                int tempoExecutado = std::min(tempoRestante[i], quantum);
+                float tempoExecutado = min(tempoRestante[i], quantum);
                 tempoAtual += tempoExecutado;
                 tempoRestante[i] -= tempoExecutado;
         
@@ -418,12 +412,12 @@ class RoundRobin : public Processos {
         
         float tempoDeEsperaMedio() {
             vector<Processos> filaDeProcessos = this->filaDeProcessos;
-            int numProcessos = filaDeProcessos.size();
-            int quantum = 2;
-            int tempoAtual = 0;
-            queue<int> prontos;
-            vector<int> tempoRestante(numProcessos);
-            vector<int> tempoConclusao(numProcessos, 0);
+            float numProcessos = filaDeProcessos.size();
+            float quantum = 2;
+            float tempoAtual = 0;
+            queue<float> prontos;
+            vector<float> tempoRestante(numProcessos);
+            vector<float> tempoConclusao(numProcessos, 0);
         
             // Ordena processos pelo tempo de chegada
             sort(filaDeProcessos.begin(), filaDeProcessos.end(),
@@ -447,10 +441,10 @@ class RoundRobin : public Processos {
                     continue;
                 }
         
-                int i = prontos.front();
+                float i = prontos.front();
                 prontos.pop();
         
-                int tempoExecutado = std::min(tempoRestante[i], quantum);
+                float tempoExecutado = min(tempoRestante[i], quantum);
                 tempoAtual += tempoExecutado;
                 tempoRestante[i] -= tempoExecutado;
         
@@ -463,7 +457,7 @@ class RoundRobin : public Processos {
         
             float somaTempoEspera = 0;
             for (int i = 0; i < numProcessos; i++) {
-                int tempoRetorno = tempoConclusao[i] - filaDeProcessos[i].getTempoDeChegada();
+                float tempoRetorno = tempoConclusao[i] - filaDeProcessos[i].getTempoDeChegada();
                 somaTempoEspera += tempoRetorno - filaDeProcessos[i].getTempoDeExecucao();
             }
         
