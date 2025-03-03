@@ -3,6 +3,8 @@
 #include <vector>
 #include <algorithm>
 #include <iomanip>
+#include <queue>
+#include <unordered_map>
 using namespace std;
 
 class Processos {
@@ -34,6 +36,7 @@ class FCFS : public Processos {
         vector<Processos> filaDeProcessos;
     public:
         FCFS() : Processos() {
+            lerArquivo();
         }
         void lerArquivo() {
             ifstream arquivo;
@@ -69,9 +72,6 @@ class FCFS : public Processos {
                         return a.getTempoDeChegada() < b.getTempoDeChegada();
                     });
         
-                cout << "Tempo de chegada: " << aux->getTempoDeChegada()
-                     << " Tempo de execucao: " << aux->getTempoDeExecucao() << endl;
-        
                 somaTempoRetorno += tempoAtual + aux->getTempoDeExecucao() - aux->getTempoDeChegada();
                 tempoAtual += aux->getTempoDeExecucao();
         
@@ -95,10 +95,6 @@ class FCFS : public Processos {
                         return a.getTempoDeChegada() < b.getTempoDeChegada();
                     });
         
-                cout << "Tempo de chegada: " << aux->getTempoDeChegada()
-                     << " Tempo de execucao: " << aux->getTempoDeExecucao() << endl;
-        
-
                 somaTempoResposta += tempoAtual - aux->getTempoDeChegada();
                 tempoAtual += aux->getTempoDeExecucao();
         
@@ -121,9 +117,6 @@ class FCFS : public Processos {
                         return a.getTempoDeChegada() < b.getTempoDeChegada();
                     });
         
-                cout << "Tempo de chegada: " << aux->getTempoDeChegada()
-                     << " Tempo de execucao: " << aux->getTempoDeExecucao() << endl;
-        
                 somaTempoEspera += tempoAtual - aux->getTempoDeChegada();
                 tempoAtual += aux->getTempoDeExecucao();
         
@@ -134,39 +127,346 @@ class FCFS : public Processos {
             
         }
 };
-/*
+
 class SJF : public Processos {
+    private:
+        vector<Processos> filaDeProcessos;
 
     public:
         SJF() : Processos() {
+            lerArquivo();
         }
-        int tempoDeRetornoMedio() {
+        void lerArquivo() {
+            ifstream arquivo;
+            arquivo.open("C:\\Users\\Casa\\Documents\\Faculdade\\P4\\Sistema Operacional\\Projeto1\\Numeros.txt");
 
+            while(arquivo.good()) {
+                Processos processo;
+                float tempoDeChegada, tempoDeExecucao;
+                arquivo >> tempoDeChegada >> tempoDeExecucao;
+                processo.setTempoDeChegada(tempoDeChegada);
+                processo.setTempoDeExecucao(tempoDeExecucao);
+                filaDeProcessos.push_back(processo);
+            }
+            arquivo.close();
         }
-        int tempoDeRespostaMedio() {
+        float tempoDeRetornoMedio() {
+            vector<Processos> filaDeProcessos = this->filaDeProcessos;
+            float somaTempoRetorno = 0;
+            int numProcessos = filaDeProcessos.size();
+            int tempoAtual = 0;
+            vector<Processos> prontos; // Fila de processos que já chegaram
+        
+            // Ordena inicialmente pelo tempo de chegada
+            sort(filaDeProcessos.begin(), filaDeProcessos.end(),
+                []( Processos& a,  Processos& b) {
+                    return a.getTempoDeChegada() < b.getTempoDeChegada();
+                });
+        
+            while (!filaDeProcessos.empty() || !prontos.empty()) {
+                // Adiciona processos que já chegaram na fila de prontos
+                while (!filaDeProcessos.empty() && filaDeProcessos.front().getTempoDeChegada() <= tempoAtual) {
+                    prontos.push_back(filaDeProcessos.front());
+                    filaDeProcessos.erase(filaDeProcessos.begin()); // Remove da fila de processos
+                }
+        
+                // Se não há processos prontos, avançar no tempo para o próximo que chega
+                if (prontos.empty()) {
+                    tempoAtual = filaDeProcessos.front().getTempoDeChegada();
+                    continue;
+                }
+        
+                // Encontrar o processo com menor tempo de execução na fila de prontos
+                auto aux = min_element(prontos.begin(), prontos.end(),
+                    []( Processos& a, Processos& b) {
+                        return a.getTempoDeExecucao() < b.getTempoDeExecucao();
+                    });
+        
+                // Calcular tempo de retorno
+                somaTempoRetorno += tempoAtual + aux->getTempoDeExecucao() - aux->getTempoDeChegada();
+                tempoAtual += aux->getTempoDeExecucao();
+        
+                // Remover o processo executado da fila de prontos
+                prontos.erase(aux);
+            }
 
+        return somaTempoRetorno / numProcessos;
         }
-        int tempoDeEsperaMedio() {
+
+        float tempoDeRespostaMedio() {
+            vector<Processos> filaDeProcessos = this->filaDeProcessos; // Cópia da fila original
+            float somaTempoResposta = 0;
+            int numProcessos = filaDeProcessos.size();
+            int tempoAtual = 0;
+            vector<Processos> prontos; // Fila de processos que já chegaram
+        
+            // Ordena inicialmente pelo tempo de chegada
+            sort(filaDeProcessos.begin(), filaDeProcessos.end(),
+                []( Processos& a,  Processos& b) {
+                    return a.getTempoDeChegada() < b.getTempoDeChegada();
+                });
+        
+            while (!filaDeProcessos.empty() || !prontos.empty()) {
+                // Adiciona processos que já chegaram na fila de prontos
+                while (!filaDeProcessos.empty() && filaDeProcessos.front().getTempoDeChegada() <= tempoAtual) {
+                    prontos.push_back(filaDeProcessos.front());
+                    filaDeProcessos.erase(filaDeProcessos.begin()); // Remove da fila de processos
+                }
+        
+                // Se não há processos prontos, avançar no tempo para o próximo que chega
+                if (prontos.empty()) {
+                    tempoAtual = filaDeProcessos.front().getTempoDeChegada();
+                    continue;
+                }
+        
+                // Encontrar o processo com menor tempo de execução na fila de prontos
+                auto aux = min_element(prontos.begin(), prontos.end(),
+                    []( Processos& a, Processos& b) {
+                        return a.getTempoDeExecucao() < b.getTempoDeExecucao();
+                    });
+        
+                // Calcular tempo de resposta
+                somaTempoResposta += tempoAtual - aux->getTempoDeChegada();
+                tempoAtual += aux->getTempoDeExecucao();
+        
+                // Remover o processo executado da fila de prontos
+                prontos.erase(aux);
+            }
+        
+            return somaTempoResposta / numProcessos;
+        }
+        
+
+        float tempoDeEsperaMedio() {
+            vector<Processos> filaDeProcessos = this->filaDeProcessos; // Cópia da fila original
+            float somaTempoEspera = 0;
+            int numProcessos = filaDeProcessos.size();
+            int tempoAtual = 0;
+            vector<Processos> prontos; // Fila de processos que já chegaram
+        
+            // Ordena inicialmente pelo tempo de chegada
+            sort(filaDeProcessos.begin(), filaDeProcessos.end(),
+                []( Processos& a,  Processos& b) {
+                    return a.getTempoDeChegada() < b.getTempoDeChegada();
+                });
+        
+            while (!filaDeProcessos.empty() || !prontos.empty()) {
+                // Adiciona processos que já chegaram na fila de prontos
+                while (!filaDeProcessos.empty() && filaDeProcessos.front().getTempoDeChegada() <= tempoAtual) {
+                    prontos.push_back(filaDeProcessos.front());
+                    filaDeProcessos.erase(filaDeProcessos.begin()); // Remove da fila de processos
+                }
+        
+                // Se não há processos prontos, avançar no tempo para o próximo que chega
+                if (prontos.empty()) {
+                    tempoAtual = filaDeProcessos.front().getTempoDeChegada();
+                    continue;
+                }
+        
+                // Encontrar o processo com menor tempo de execução na fila de prontos
+                auto aux = min_element(prontos.begin(), prontos.end(),
+                    []( Processos& a, Processos& b) {
+                        return a.getTempoDeExecucao() < b.getTempoDeExecucao();
+                    });
+
+                // Calcular tempo de espera
+                somaTempoEspera += tempoAtual - aux->getTempoDeChegada();
+                tempoAtual += aux->getTempoDeExecucao();
+        
+                // Remover o processo executado da fila de prontos
+                prontos.erase(aux);
+            }
+        
+            return somaTempoEspera / numProcessos;
 
         }
 };
+
 
 class RoundRobin : public Processos {
     private:
-        int quantum;
-        queue<Processos> filaDeProcessos;
+        float quantum;
+        vector<Processos> filaDeProcessos;
     public:
         RoundRobin() : Processos() {
             this->quantum = 2;
+            lerArquivo();
         }
-        int tempoDeRetornoMedio() {
+        void lerArquivo() {
+            ifstream arquivo;
+            arquivo.open("C:\\Users\\Casa\\Documents\\Faculdade\\P4\\Sistema Operacional\\Projeto1\\Numeros.txt");
 
+            while(arquivo.good()) {
+                Processos processo;
+                float tempoDeChegada, tempoDeExecucao;
+                arquivo >> tempoDeChegada >> tempoDeExecucao;
+                processo.setTempoDeChegada(tempoDeChegada);
+                processo.setTempoDeExecucao(tempoDeExecucao);
+                filaDeProcessos.push_back(processo);
+            }
+            arquivo.close();
         }
-        int tempoDeRespostaMedio() {
-
+        float tempoDeRetornoMedio() {
+            vector<Processos> filaDeProcessos = this->filaDeProcessos; // Cópia da fila original
+            float somaTempoRetorno = 0;
+            int numProcessos = filaDeProcessos.size();
+            int tempoAtual = 0;
+            float quantum = 2; // Defina o quantum do Round Robin
+            queue<Processos> prontos; // Fila circular de processos
+        
+            // Ordena inicialmente pelo tempo de chegada
+            sort(filaDeProcessos.begin(), filaDeProcessos.end(),
+                []( Processos& a, Processos& b) {
+                    return a.getTempoDeChegada() < b.getTempoDeChegada();
+                });
+        
+            // Índice para controle de processos que entram na fila
+            int index = 0;
+            vector<int> temposDeConclusao(numProcessos, 0); // Armazena o tempo de conclusão de cada processo
+        
+            while (index < numProcessos || !prontos.empty()) {
+                // Adiciona processos que chegaram à fila de prontos
+                while (index < numProcessos && filaDeProcessos[index].getTempoDeChegada() <= tempoAtual) {
+                    prontos.push(filaDeProcessos[index]);
+                    index++;
+                }
+        
+                // Se a fila está vazia, avançar o tempo para o próximo processo
+                if (prontos.empty()) {
+                    tempoAtual = filaDeProcessos[index].getTempoDeChegada();
+                    continue;
+                }
+        
+                // Pega o primeiro processo da fila
+                Processos processoAtual = prontos.front();
+                prontos.pop(); // Remove da fila
+        
+                // Executa pelo quantum ou pelo tempo restante, o que for menor
+                float tempoExecutado = min(quantum, processoAtual.getTempoDeExecucao());
+                tempoAtual += tempoExecutado;
+                processoAtual.setTempoDeExecucao(processoAtual.getTempoDeExecucao() - tempoExecutado);
+        
+                // Se o processo terminou, calcula o tempo de retorno
+                if (processoAtual.getTempoDeExecucao() == 0) {
+                    int tempoConclusao = tempoAtual;
+                    somaTempoRetorno += tempoConclusao - processoAtual.getTempoDeChegada();
+                } else {
+                    // Se ainda não terminou, volta para o final da fila
+                    prontos.push(processoAtual);
+                }
+            }
+        
+            return somaTempoRetorno / numProcessos;
         }
-        int tempoDeEsperaMedio() {
-
+        
+        float tempoDeRespostaMedio() {
+            vector<Processos> filaDeProcessos = this->filaDeProcessos; // Cópia da fila original
+            int numProcessos = filaDeProcessos.size();
+            int quantum = 2; // Quantum do Round Robin
+            int tempoAtual = 0;
+            queue<int> prontos; // Armazena índices dos processos
+            unordered_map<int, int> tempoPrimeiraExecucao; // Índice -> Tempo da primeira execução
+            vector<int> tempoRestante(numProcessos); // Tempo restante para cada processo
+        
+            // Ordena processos pelo tempo de chegada
+            sort(filaDeProcessos.begin(), filaDeProcessos.end(),
+                []( Processos& a, Processos& b) {
+                    return a.getTempoDeChegada() < b.getTempoDeChegada();
+                });
+        
+            for (int i = 0; i < numProcessos; i++) {
+                tempoRestante[i] = filaDeProcessos[i].getTempoDeExecucao();
+            }
+        
+            int index = 0;
+            while (index < numProcessos || !prontos.empty()) {
+                // Adicionar processos que chegaram
+                while (index < numProcessos && filaDeProcessos[index].getTempoDeChegada() <= tempoAtual) {
+                    prontos.push(index);
+                    index++;
+                }
+        
+                if (prontos.empty()) {
+                    tempoAtual = filaDeProcessos[index].getTempoDeChegada();
+                    continue;
+                }
+        
+                int i = prontos.front(); // Pega o índice do processo
+                prontos.pop();
+        
+                // Registra a primeira execução (se ainda não foi registrado)
+                if (tempoPrimeiraExecucao.find(i) == tempoPrimeiraExecucao.end()) {
+                    tempoPrimeiraExecucao[i] = tempoAtual;
+                }
+        
+                int tempoExecutado = std::min(tempoRestante[i], quantum);
+                tempoAtual += tempoExecutado;
+                tempoRestante[i] -= tempoExecutado;
+        
+                if (tempoRestante[i] > 0) {
+                    prontos.push(i); // Volta para a fila se ainda não terminou
+                }
+            }
+        
+            float somaTempoResposta = 0;
+            for (int i = 0; i < numProcessos; i++) {
+                somaTempoResposta += tempoPrimeiraExecucao[i] - filaDeProcessos[i].getTempoDeChegada();
+            }
+        
+            return somaTempoResposta / numProcessos;
         }
+        
+        float tempoDeEsperaMedio() {
+            vector<Processos> filaDeProcessos = this->filaDeProcessos;
+            int numProcessos = filaDeProcessos.size();
+            int quantum = 2;
+            int tempoAtual = 0;
+            queue<int> prontos;
+            vector<int> tempoRestante(numProcessos);
+            vector<int> tempoConclusao(numProcessos, 0);
+        
+            // Ordena processos pelo tempo de chegada
+            sort(filaDeProcessos.begin(), filaDeProcessos.end(),
+                [](Processos& a, Processos& b) {
+                    return a.getTempoDeChegada() < b.getTempoDeChegada();
+                });
+        
+            for (int i = 0; i < numProcessos; i++) {
+                tempoRestante[i] = filaDeProcessos[i].getTempoDeExecucao();
+            }
+        
+            int index = 0;
+            while (index < numProcessos || !prontos.empty()) {
+                while (index < numProcessos && filaDeProcessos[index].getTempoDeChegada() <= tempoAtual) {
+                    prontos.push(index);
+                    index++;
+                }
+        
+                if (prontos.empty()) {
+                    tempoAtual = filaDeProcessos[index].getTempoDeChegada();
+                    continue;
+                }
+        
+                int i = prontos.front();
+                prontos.pop();
+        
+                int tempoExecutado = std::min(tempoRestante[i], quantum);
+                tempoAtual += tempoExecutado;
+                tempoRestante[i] -= tempoExecutado;
+        
+                if (tempoRestante[i] == 0) {
+                    tempoConclusao[i] = tempoAtual;
+                } else {
+                    prontos.push(i);
+                }
+            }
+        
+            float somaTempoEspera = 0;
+            for (int i = 0; i < numProcessos; i++) {
+                int tempoRetorno = tempoConclusao[i] - filaDeProcessos[i].getTempoDeChegada();
+                somaTempoEspera += tempoRetorno - filaDeProcessos[i].getTempoDeExecucao();
+            }
+        
+            return somaTempoEspera / numProcessos;
+        }    
 };
-*/
