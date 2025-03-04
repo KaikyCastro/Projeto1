@@ -5,6 +5,8 @@
 #include <iomanip>
 #include <queue>
 #include <unordered_map>
+#include <numeric>
+
 using namespace std;
 
 class Processos {
@@ -23,10 +25,10 @@ class Processos {
         float getTempoDeExecucao() {
             return tempoDeExecucao;
         }
-        void setTempoDeChegada(int tempoDeChegada) {
+        void setTempoDeChegada(float tempoDeChegada) {
             this->tempoDeChegada = tempoDeChegada;
         }
-        void setTempoDeExecucao(int tempoDeExecucao) {
+        void setTempoDeExecucao(float tempoDeExecucao) {
             this->tempoDeExecucao = tempoDeExecucao;
         }
 };
@@ -62,7 +64,7 @@ class FCFS : public Processos {
             while (!filaDeProcessos.empty()) {
                 // Encontrar o processo com o menor tempo de chegada
                 auto aux = min_element(filaDeProcessos.begin(), filaDeProcessos.end(),
-                    []( Processos& a, Processos& b) {
+                    [](Processos& a, Processos& b) {
                         return a.getTempoDeChegada() < b.getTempoDeChegada();
                     });
         
@@ -259,7 +261,7 @@ class SJF : public Processos {
         
                 // Encontrar o processo com menor tempo de execução na fila de prontos
                 auto aux = min_element(prontos.begin(), prontos.end(),
-                    []( Processos& a, Processos& b) {
+                    [](Processos& a, Processos& b) {
                         return a.getTempoDeExecucao() < b.getTempoDeExecucao();
                     });
 
